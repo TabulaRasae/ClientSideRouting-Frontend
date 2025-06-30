@@ -5,10 +5,32 @@ import "./AppStyles.css";
 import TaskList from "./components/TaskList";
 import AddTask from "./components/AddTask";
 import NavBar from "./components/NavBar";
-import { BrowserRouter as Router, Routes } from "react-router";
+import TaskDetails from "./components/TaskDetails"
+import { BrowserRouter as Router, Routes, Route } from "react-router";
+
+// const initialTasks = [
+//     {
+//       title: "Get eight hours of sleep",
+//       description: "Sleepy time tea is a must",
+//       completed: false,
+//     },
+//     {
+//       title: "EOD survey",
+//       description: "The EOD survey is always linked in the Discord",
+//       completed: true,
+//     },
+//     {
+//       title: "Install PostgreSQL",
+//       description: "Don't forget your PostgreSQL password!",
+//       completed: true,
+//     },
+//   ];
 
 const App = () => {
   const [tasks, setTasks] = useState([]);
+  const [users, setUsers] = useState([]);
+  const complete = tasks.filter(task => task.completed === true);
+  const incomplete = tasks.filter(task => task.completed === false);
 
   async function fetchAllTasks() {
     try {
@@ -19,19 +41,34 @@ const App = () => {
     }
   }
 
+  async function fetchAllUsers() {
+    try {
+      const response = await axios.get("http://localhost:8080/api/users");
+      setUsers(response.data);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  }
+
   useEffect(() => {
     fetchAllTasks();
+    fetchAllUsers();
   }, []);
 
   return (
     <div>
       <NavBar />
-      <TaskList tasks={tasks} fetchAllTasks={fetchAllTasks} />
-      <AddTask fetchAllTasks={fetchAllTasks} />
+      {/* <TaskList tasks={tasks} fetchAllTasks={fetchAllTasks} />
+      <AddTask fetchAllTasks={fetchAllTasks} /> */}
       <Routes>
         {/* Currently, we don't have any routes defined. And you can see above that we're
             rendering the TaskList and AddTask components directly, no matter what our URL looks like.
             Let's fix that! */}
+        <Route path="/" element={<TaskList tasks={tasks} fetchAllTasks={fetchAllTasks}/>} />
+        <Route path="/completed" element={<TaskList tasks={complete} fetchAllTasks={fetchAllTasks}/>} />
+        <Route path="/incomplete" element={<TaskList tasks={incomplete} fetchAllTasks={fetchAllTasks}/>} />
+        <Route path="/add-task" element={<AddTask fetchAllTasks={fetchAllTasks}/>} />
+        <Route path="/:id" element={<TaskDetails tasks={tasks} users={users} fetchAllTasks={fetchAllTasks} />} />
       </Routes>
     </div>
   );
